@@ -16,10 +16,21 @@ class Red_shooting(Node):
                 'color_red', 
                 self.shooting_callback, 
                 10)
+        
+        self.red_pub_return = self.create_publisher(String, 'color_red_return', 10)
 
     def shooting_callback(self, data):
         ser.write(1)
-        #time.sleep(5)
+        while (1):
+            if ser.readable():	# 아두이노에서 값이 반환되었을 때
+                arduino_response = ser.readline()
+                
+                #print(arduino_response[:len(arduino_response)-1].decode())
+                
+                msg = String()
+                msg.data = arduino_response[:len(arduino_response)-1].decode()
+                self.red_pub_return.publish(msg)
+                break
 
 def main(args=None):
     
