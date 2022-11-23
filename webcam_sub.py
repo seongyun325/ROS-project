@@ -8,12 +8,20 @@ from time import sleep
 import numpy as np
 
 from std_msgs.msg import String
+
+red_topic = 0
  
 class ImageSubscriber(Node):
 
   def __init__(self):
     super().__init__('image_subscriber')
-      
+    
+    self.clear_sub = self.create_subscription(
+      String, 
+      'color_red_return', 
+      self.clear_callback, 
+      10)
+    
     self.subscription = self.create_subscription(
       Image, 
       'image_raw', 
@@ -24,10 +32,16 @@ class ImageSubscriber(Node):
     self.br = CvBridge()
     
     self.red_pub = self.create_publisher(String, 'color_red', 10)
-   
+  
+  def clear_callback(self, data):
+    global red_topic
+    
+    red_topic = 0
+  
   def listener_callback(self, data):
-
-    self.get_logger().info('Receiving video frame')
+    global red_topic
+    
+    #self.get_logger().info('Receiving video frame')
  
     img_color = self.br.imgmsg_to_cv2(data)
     
@@ -81,10 +95,13 @@ class ImageSubscriber(Node):
         cv2.rectangle(img_color, (left, top), (left + width, top + height), (0, 0, 255), 5)
         cv2.circle(img_color, (center_x, center_y), 10, (0, 255, 0), -1)
         
-        self.get_logger().info('find red!!!!!!!!!!!!!!!!!!!!!!!!!!!') # 검출되면 콜솔창 출력
-        msg = String()
-        msg.data = 'red'
-        self.red_pub.publish(msg)
+        if (120 < center_x < 170 and 140 < center_y < 170 and red_topic==0):
+            red_topic = 1
+            self.get_logger().info('center_x : %d, center_y : %d'%(center_x,center_y))
+            self.get_logger().info('find red!!!!!!!!!!!!!!!!!!!!!!!!!!!') # 검출되면 콜솔창 출력
+            msg = String()
+            msg.data = 'red'
+            self.red_pub.publish(msg)
 
     cv2.imshow('Blue', img_mask)
     cv2.imshow('Result', img_color)
