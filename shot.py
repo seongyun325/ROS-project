@@ -27,6 +27,7 @@ class Red_shooting(Node):
                 
                 #print(arduino_response[:len(arduino_response)-1].decode())
                 
+                time.sleep(3)
                 msg = String()
                 msg.data = arduino_response[:len(arduino_response)-1].decode()
                 self.red_pub_return.publish(msg)
