@@ -40,7 +40,9 @@ class ImageSubscriber(Node):
     self.red_pub = self.create_publisher(String, 'color_red', 10)
   
   def find_callback(self, msg):
-    find_topic = self.msg.data
+  	global find_topic
+  	find_topic = msg.data
+  	self.get_logger().info("%s" %(find_topic)) #test
   
   def clear_callback(self, data):
     global red_topic
@@ -48,6 +50,7 @@ class ImageSubscriber(Node):
     red_topic = 0
   
   def listener_callback(self, data):
+    global find_topic
     global red_topic
     
     #self.get_logger().info('Receiving video frame')
@@ -106,11 +109,13 @@ class ImageSubscriber(Node):
         
         if (find_topic == 'find'):
             
-            if (120 < center_x < 170 and 140 < center_y < 170 and red_topic==0):
-                find_topic = ''
+            if (110 < center_x < 210 and 60 < center_y < 170 and red_topic==0):
+                find_topic = 'fing'
                 red_topic = 1
+                
                 self.get_logger().info('center_x : %d, center_y : %d'%(center_x,center_y))
                 self.get_logger().info('find red!!!!!!!!!!!!!!!!!!!!!!!!!!!') # 검출되면 콜솔창 출력
+                
                 msg = String()
                 msg.data = 'red'
                 self.red_pub.publish(msg)
