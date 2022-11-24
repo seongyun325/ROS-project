@@ -1,4 +1,3 @@
-
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
@@ -9,12 +8,19 @@ import numpy as np
 
 from std_msgs.msg import String
 
+find_topic = ''
 red_topic = 0
  
 class ImageSubscriber(Node):
 
   def __init__(self):
     super().__init__('image_subscriber')
+    
+    self.laser_cam_sub = self.create_subscription(
+      String, 
+      'laser_cam', 
+      self.find_callback, 
+      10)
     
     self.clear_sub = self.create_subscription(
       String, 
@@ -32,6 +38,9 @@ class ImageSubscriber(Node):
     self.br = CvBridge()
     
     self.red_pub = self.create_publisher(String, 'color_red', 10)
+  
+  def find_callback(self, msg):
+    find_topic = self.msg.data
   
   def clear_callback(self, data):
     global red_topic
@@ -95,13 +104,16 @@ class ImageSubscriber(Node):
         cv2.rectangle(img_color, (left, top), (left + width, top + height), (0, 0, 255), 5)
         cv2.circle(img_color, (center_x, center_y), 10, (0, 255, 0), -1)
         
-        if (120 < center_x < 170 and 140 < center_y < 170 and red_topic==0):
-            red_topic = 1
-            self.get_logger().info('center_x : %d, center_y : %d'%(center_x,center_y))
-            self.get_logger().info('find red!!!!!!!!!!!!!!!!!!!!!!!!!!!') # 검출되면 콜솔창 출력
-            msg = String()
-            msg.data = 'red'
-            self.red_pub.publish(msg)
+        if (find_topic == 'find'):
+            
+            if (120 < center_x < 170 and 140 < center_y < 170 and red_topic==0):
+                find_topic = ''
+                red_topic = 1
+                self.get_logger().info('center_x : %d, center_y : %d'%(center_x,center_y))
+                self.get_logger().info('find red!!!!!!!!!!!!!!!!!!!!!!!!!!!') # 검출되면 콜솔창 출력
+                msg = String()
+                msg.data = 'red'
+                self.red_pub.publish(msg)
 
     cv2.imshow('Blue', img_mask)
     cv2.imshow('Result', img_color)
