@@ -15,6 +15,7 @@ class ClientFollowPoints(Node):
     def __init__(self):
         super().__init__('client_follow_points')
         self._client = ActionClient(self, FollowWaypoints, '/FollowWaypoints')
+        #self.declare_parameter('mode', 'move')
         self.declare_parameter('waypoints', '1')
         timer_period = 5	# seconds
         self.timer = self.create_timer(timer_period, self.send_waypoints)
@@ -32,16 +33,26 @@ class ClientFollowPoints(Node):
     		self.rgoal.header.stamp.nanosec = 0
     		
     		self.rgoal.pose.position.z = 0.0
-    		self.rgoal.pose.position.x = 0.897
-    		self.rgoal.pose.position.y = 0.17
+    		self.rgoal.pose.position.x = 0.717
+    		self.rgoal.pose.position.y = 0.163
     		
     		self.rgoal.pose.orientation.w = 1.0
     	elif param == '2':
-    		self.rgoal.pose.position.x = 0.897
-    		self.rgoal.pose.position.y = 0.17
+    		self.rgoal.header.frame_id = "map"
+    		self.rgoal.header.stamp.sec = 0
+    		self.rgoal.header.stamp.nanosec = 0
+    		
+    		self.rgoal.pose.position.z = 0.0
+    		self.rgoal.pose.position.x = 1.05
+    		self.rgoal.pose.position.y = -0.518
+    		
+    		self.rgoal.pose.orientation.w = 1.0
     	elif param == '3':
-    		self.rgoal.pose.position.x = 0.897
-    		self.rgoal.pose.position.y = 0.17	
+    		self.rgoal.pose.position.x = 1.63
+    		self.rgoal.pose.position.y = -0.0188
+    	
+    	mgoal = [self.rgoal]
+    	self.send_points(mgoal)	
     		
     def send_points(self, points):
         msg = FollowWaypoints.Goal()
@@ -86,8 +97,7 @@ def main(args=None):
     
     rgoal.pose.orientation.w = 1.0
     '''
-    mgoal = [follow_points_client.rgoal]
-    follow_points_client.send_points(mgoal)
+    
     rclpy.spin(follow_points_client)
 	
     	
