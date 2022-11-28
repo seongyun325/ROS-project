@@ -25,6 +25,8 @@ class SubLaser(Node):
         
         self.laser_cam_pub = self.create_publisher(String, 'laser_cam', 10)
         
+        self.point_control = self.create_publisher(String, 'waypoint_control', 10)
+        
     def get_scan(self, msg):
         self.scan = msg
         print("front = %s" %(self.scan.ranges[0]))
@@ -34,24 +36,39 @@ class SubLaser(Node):
         print("--------------------------")
         
         for i in range(0, 360):
-            if (0.0 < float(self.scan.ranges[i]) < 0.35):
-            	msg = String()
-            	msg.data = 'find'
-            	self.laser_cam_pub.publish(msg)
-        
-            	print(i, "도 방향 미상물체 !!!!!!!")
-            	if (i > 180):
-            		self.move_tb3.rotate(radians(-(360-i)))
-            		self.move_tb3.straight(-0.03)
-            		msg.data = 'end_find'
-            		self.laser_cam_pub.publish(msg)
-            		break
-            	else:
-            		self.move_tb3.rotate(radians(i))
-            		self.move_tb3.straight(-0.03)
-            		msg.data = 'end_find'
-            		self.laser_cam_pub.publish(msg)
-            		break
+        	#angle_sum = 0
+        	#stack = 1
+        	#angle_avg = 0
+        	if (0.0 < float(self.scan.ranges[i]) < 0.4):
+        		topic = String()
+        		topic.data = 'stop'
+        		self.point_control.publish(topic)
+        		
+        		msg = String()
+        		msg.data = 'find'
+        		self.laser_cam_pub.publish(msg)
+        		
+        		print(i, "도 방향 !!!!!!!")
+        		if (i > 180):
+        			self.move_tb3.rotate(radians(-(360-i-10)))
+        			#self.move_tb3.straight(-0.08)
+        			msg.data = 'end_find'
+        			self.laser_cam_pub.publish(msg)
+        			
+        			topic.data = 'go'
+        			self.point_control.publish(topic)
+        			
+        			break
+        		else:
+        			self.move_tb3.rotate(radians(i+20))
+        			#self.move_tb3.straight(-0.08)
+        			msg.data = 'end_find'
+        			self.laser_cam_pub.publish(msg)
+        			
+        			topic.data = 'go'
+        			self.point_control.publish(topic)
+        			
+        			break
             	
             	#msg = String()
             	
