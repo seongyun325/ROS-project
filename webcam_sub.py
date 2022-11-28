@@ -8,13 +8,30 @@ import numpy as np
 
 from std_msgs.msg import String
 
+from rclpy.qos import QoSProfile
+from rclpy.qos import qos_profile_sensor_data
+from sensor_msgs.msg import LaserScan
+from geometry_msgs.msg import Twist
+from rcl_interfaces.srv import SetParameters, GetParameters, ListParameters
+from rclpy.exceptions import ParameterNotDeclaredException
+from rclpy.parameter import Parameter
+
 find_topic = ''
 red_topic = 0
+
+tmp = ' '
  
 class ImageSubscriber(Node):
 
   def __init__(self):
     super().__init__('image_subscriber')
+    
+    self.sub_scan = self.create_subscription(
+           LaserScan,           # topic type
+            '/scan',        # topic name
+            self.get_scan,   # callback function
+            qos_profile_sensor_data)
+    self.scan = LaserScan()
     
     self.laser_cam_sub = self.create_subscription(
       String, 
@@ -38,6 +55,23 @@ class ImageSubscriber(Node):
     self.br = CvBridge()
     
     self.red_pub = self.create_publisher(String, 'color_red', 10)
+    
+    self.tw 	= Twist()
+    self.cli = self.create_client(SetParameters, 'client_follow_points/set_parameters')
+    self.req = SetParameters.Request()
+    self.count = 1
+    
+  def send_request(self):
+    if self.count < 3:
+    	self.count = self.count + 1
+    self.req.parameters = [Parameter(name='waypoints', value='point' + str(self.count)).to_parameter_msg()]
+    self.future = self.cli.call_async(self.req)
+    
+  def get_scan(self, msg):
+    #global tmp
+    self.scan = msg
+    #tmp = self.scan.ranges[0]
+    #print("%s" %(self.scan.ranges[0]))
   
   def find_callback(self, msg):
   	global find_topic
@@ -48,10 +82,13 @@ class ImageSubscriber(Node):
     global red_topic
     
     red_topic = 0
+    self.send_request()
   
   def listener_callback(self, data):
     global find_topic
     global red_topic
+    
+    global tmp
     
     #self.get_logger().info('Receiving video frame')
  
@@ -60,10 +97,10 @@ class ImageSubscriber(Node):
     ########################################빨강색 영역 검출 후 라벨링####################################
     img_hsv = cv2.cvtColor(img_color, cv2.COLOR_BGR2HSV)
 
-    hue_blue = 0 # 빨강색 기준값
-    lower_blue = (hue_blue-10, 100, 100) # 하한값
-    upper_blue = (hue_blue+10, 255, 255) # 상한값
-    img_mask = cv2.inRange(img_hsv, lower_blue, upper_blue) # 마스크 생성
+    hue_red = 0 # 빨강색 기준값
+    lower_red = (hue_red-10, 100, 100) # 하한값
+    upper_red = (hue_red+10, 255, 255) # 상한값
+    img_mask = cv2.inRange(img_hsv, lower_red, upper_red) # 마스크 생성
 
     # kernel = cv2.getStructuringElement( cv2.MORPH_RECT, ( 5, 5 ) )
     # img_mask = cv2.morphologyEx(img_mask, cv2.MORPH_DILATE, kernel, iterations = 3)
@@ -108,8 +145,14 @@ class ImageSubscriber(Node):
         cv2.circle(img_color, (center_x, center_y), 10, (0, 255, 0), -1)
         
         if (find_topic == 'find'):
+            #forward_obstacle = 0
+            #while(1):
+            #    if(0.0 < float(self.scan.ranges[0]) < 0.4):
+            #        forward_obstacle = 1
+            #        break
             
-            if (110 < center_x < 210 and 60 < center_y < 170 and red_topic==0):
+            if (110 < center_x < 210 and 60 < center_y < 170 and red_topic==0 and 
+            		0.0 < float(self.scan.ranges[0]) < 0.5):
                 find_topic = 'fing'
                 red_topic = 1
                 
@@ -120,7 +163,7 @@ class ImageSubscriber(Node):
                 msg.data = 'red'
                 self.red_pub.publish(msg)
 
-    cv2.imshow('Blue', img_mask)
+    cv2.imshow('RED', img_mask)
     cv2.imshow('Result', img_color)
     ####################################################################################################
     
