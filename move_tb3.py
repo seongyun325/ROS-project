@@ -12,7 +12,7 @@ MAX_ANG_SPEED =  2.84
 
 # make default speed of linear & angular
 LIN_SPD = MAX_LIN_SPEED * 0.125
-ANG_SPD = MAX_ANG_SPEED * 0.125
+ANG_SPD = MAX_ANG_SPEED * 0.2
 
 
 class MoveTB3(Node):
