@@ -51,7 +51,7 @@ class SubLaser(Node):
         		print(i, "도 방향 !!!!!!!")
         		if (i > 180):
         			self.move_tb3.rotate(radians(-(360-i-10)))
-        			#self.move_tb3.straight(-0.08)
+        			self.move_tb3.straight(-0.08)
         			msg.data = 'end_find'
         			self.laser_cam_pub.publish(msg)
         			
@@ -61,7 +61,7 @@ class SubLaser(Node):
         			break
         		else:
         			self.move_tb3.rotate(radians(i+20))
-        			#self.move_tb3.straight(-0.08)
+        		    self.move_tb3.straight(-0.08)
         			msg.data = 'end_find'
         			self.laser_cam_pub.publish(msg)
         			
