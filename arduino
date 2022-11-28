@@ -5,14 +5,14 @@ void setup()
 }
 void loop()
 {
-  //Serial.println("쉣더 뻑!");
+  
 
   if(Serial.available()){
     char ch = Serial.read();
-    digitalWrite(13, HIGH);
-    
+    digitalWrite(8, HIGH);
+    Serial.println("shot!");
   } else {
-    digitalWrite(13, LOW);
+    digitalWrite(8, LOW);
   }
   
   delay(50);
